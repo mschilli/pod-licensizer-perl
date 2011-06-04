@@ -22,6 +22,7 @@ WriteMakefile(
         YAML          => 0.71,
         Pod::Parser   => 1.37,
     }, # e.g., Module::Name => 1.1
+    EXE_FILES           => ["eg/licensizer"],
     $ExtUtils::MakeMaker::VERSION >= 6.50 ? (%$meta_merge) : (),
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'Licensizer.pm',
