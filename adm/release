@@ -1,0 +1,5 @@
+#!/usr/bin/perl
+# Available at http://perlmeister.com/scripts
+use ModDevUtils;
+
+ModDevUtils::release() or exit 0;
