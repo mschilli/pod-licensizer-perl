@@ -20,7 +20,7 @@ Blah is superb in every aspect.
     Bodo Bravo <bodo@bravo.com>
     Zach Zulu <zach@zulu.com>
 
-=head1 COPYRIGHT
+=head1 LICENSE
 
 Copyright 2002-2011 by Bodo Bravo <bodo@bravo.com> and
 Zach Zulu <zach@zulu.com>. All rights reserved.

@@ -7,47 +7,126 @@ use strict;
 use warnings;
 use Getopt::Std;
 use Pod::Usage;
+use Log::Log4perl qw(:easy);
+use YAML qw(LoadFile);
+use Cwd qw(realpath cwd);
+use Pod::Find qw(pod_find contains_pod);
+use Pod::Abstract;
+use Pod::Licensizer;
 
-use vars qw($CVSVERSION);
-
-$CVSVERSION = '$Revision: 1.12 $';
+my $yaml_file = ".licensizer.yml";
 
 getopts("hv", \my %opts);
 pod2usage() if $opts{h};
-if($opts{v}) {
-    my ($version) = $CVSVERSION =~ /(\d\S+)/;
-    die "$0 $version\n";
+
+my $level = $ERROR;
+$level = $DEBUG if $opts{v};
+Log::Log4perl->easy_init( $level );
+
+main();
+
+###########################################
+sub main {
+###########################################
+    my $yaml_path;
+      # search upwards for a .licensizer.yml file
+    my $dir = realpath( cwd() );
+    my $start_dir = $dir;
+    while( 1 ) {
+        $yaml_path = File::Spec->catfile( $dir, $yaml_file );
+    
+        last if -f $yaml_path;
+    
+        my $newpath = realpath( "$dir/.." );
+        last if $newpath eq $dir;
+    
+        $dir = $newpath;
+    }
+    
+    if( !defined $yaml_path ) {
+        FATAL "No $yaml_file found";
+        return;
+    }
+
+    DEBUG "Config yaml file $yaml_path found.";
+
+    my $data = LoadFile $yaml_path;
+
+    for my $field ( qw(author license) ) {
+        if( ! defined $data->{ $field } ) {
+            FATAL "$yaml_path has no '$field' field";
+            return;
+        }
+
+          # deal with simple/advanced format
+        if( ref( $data->{ $field } ) ne "HASH" ) {
+            $data->{ $field }->{ text } =  $data->{ $field };
+        }
+    }
+
+      # Search for pod files
+    my %pods = pod_find( {}, "." );
+
+    my @path_exclude = ();
+    @path_exclude = @{ $data->{path_exclude} } if exists $data->{path_exclude};
+
+    POD: for my $pod ( sort keys %pods ) {
+        my $relpath = File::Spec->abs2rel( $pod, $start_dir ) ;
+        DEBUG "POD: $relpath\n";
+        for my $exclude ( @path_exclude ) {
+            if( $relpath =~ /^$exclude/ ) {
+                DEBUG "Path $relpath excluded";
+                next POD;
+            }
+        }
+        next if !contains_pod( $pod );
+        DEBUG "Processing $relpath";
+        my $licensizer = Pod::Licensizer->new();
+        $licensizer->load_file( $pod );
+        $licensizer->author_patch( $data->{author}->{ text },
+                                   $data->{author} );
+        $licensizer->license_patch( $data->{license}->{ text },
+                                    $data->{license} );
+        if( $licensizer->modified() ) {
+            INFO "Updated $relpath";
+            $licensizer->write_file();
+        } else {
+            DEBUG "$relpath: not modified";
+        }
+    }
+
+    return 1;
 }
 
 __END__
 
 =head1 NAME
 
-    licensizer - blah blah blah
+    licensizer - Keep your project's AUTHOR and LICENSE sections in sync
 
 =head1 SYNOPSIS
 
-    licensizer -xyz
+    licensizer
 
 =head1 OPTIONS
 
 =over 8
 
-=item B<-x>
+=item B<-v>
 
-Prints this manual page in text format.
+Be verbose.
 
 =back
 
 =head1 DESCRIPTION
 
-licensizer blah blah blah.
+licensizer traverses a source tree, picks files containing POD 
+documentation, and refreshes their AUTHOR and LICENSE sections 
+according to a .licensizer.yml file found within.
 
-=head1 EXAMPLES
+Check the Pod::Licensizer documentation for details.
 
-  $ licensizer -x foo bar
-
-=head1 LEGALESE
+=head1 LICENSE
 
 Copyright 2011 by Mike Schilli, all rights reserved.
 This program is free software, you can redistribute it and/or
@@ -55,4 +134,5 @@ modify it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
-2011, Mike Schilli <cpan@perlmeister.com>
+    2011, Mike Schilli <cpan@perlmeister.com>
+    

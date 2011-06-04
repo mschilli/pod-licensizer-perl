@@ -1,24 +1,76 @@
 ######################################################################
-    podpatcher 0.01
+    Pod::Licensizer 0.01
 ######################################################################
 
 NAME
-    podpatcher - blah blah blah
+    Pod::Licensizer - Keep your project's AUTHOR and LICENSE sections in
+    sync
 
 SYNOPSIS
-        use podpatcher;
+        # Command line:
+        $ licensizer
+
+        # API:
+        use Pod::Licensizer;
+
+        my $licensizer = Pod::Licensizer->new();
+        $licensizer->load_file( "MyModule.pm" );
+
+        $licensizer->author_patch( 'Bodo Bravo <bodo@bravo.com>' );
+        $licensizer->license_patch( 'Copyright 2011 blah blah blah' );
+
+        $licensizer->write_file();
 
 DESCRIPTION
-    podpatcher blah blah blah.
+    Pod::Licensizer helps keeping AUTHOR and LICENSE sections in sync across
+    many source files in a project.
 
-EXAMPLES
-      $ perl -Mpodpatcher -le 'print $foo'
+  licensizer
+    Pod::Licensizer comes with a command line utility, "licensizer", which
+    traverses a source tree, picks files containing POD documentation, and
+    refreshes their AUTHOR and LICENSE sections.
 
-LEGALESE
+    You define a ".licensizer.yml" file at the top level of your project
+    containing the desired AUTHOR and LICENSE data like
+
+        # .licensizer.yml
+        author: |
+          Bodo Bravo <bodo@bravo.com>
+          Zach Zulu <zach@zulu.com>
+
+        copyright: |
+          Copyright 2002-2011 by Bodo Bravo <bodo@bravo.com> and
+          Zach Zulu <zach@zulu.com>. All rights reserved.
+
+    and then simply run the "licensizer" script.
+
+    This is helpful if you want to add an author to your project or change
+    the year in the copyright notice. All you have to do is edit the
+    ".licensizer.yml" file and run "licensizer".
+
+    Advanced format:
+
+        # .licensizer.yml
+    
+        author: 
+          text: |
+            Mike Schilli <cpan@perlmeister.com>
+          header: AUTHORS
+          mode: verbatim
+    
+        license: 
+          text: |
+            Copyright 2011 by Mike Schilli, all rights reserved.
+            This program is free software, you can redistribute it and/or
+            modify it under the same terms as Perl itself.
+          header: LEGALESE
+
+  API
+LICENSE
     Copyright 2011 by Mike Schilli, all rights reserved. This program is
     free software, you can redistribute it and/or modify it under the same
     terms as Perl itself.
 
 AUTHOR
-    2011, Mike Schilli <cpan@perlmeister.com>
+        2011, Mike Schilli <cpan@perlmeister.com>
 
