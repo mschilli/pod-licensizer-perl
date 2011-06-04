@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 my $meta_merge = {
     META_MERGE => {
         resources => {
-            repository  => 'http://github.com/mschilli/pod-licensizer-perl.git',
+            repository  => 'http://github.com/mschilli/pod-licensizer-perl',
         },
     }
 };
