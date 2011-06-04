@@ -16,11 +16,15 @@ use Pod::Licensizer;
 
 my $yaml_file = ".licensizer.yml";
 
-getopts("hv", \my %opts);
-pod2usage() if $opts{h};
+getopts("hvcn", \my %cmd_opts);
+pod2usage() if $cmd_opts{h};
 
 my $level = $ERROR;
-$level = $DEBUG if $opts{v};
+$level = $DEBUG if $cmd_opts{v};
+
+  # On dryrun, bump the level up a bit if it's not already verbose
+$level = $INFO if !$cmd_opts{v} and $cmd_opts{n};
+
 Log::Log4perl->easy_init( $level );
 
 main();
@@ -82,11 +86,15 @@ sub main {
         next if !contains_pod( $pod );
         DEBUG "Processing $relpath";
         my $licensizer = Pod::Licensizer->new();
-        $licensizer->load_file( $pod );
-        $licensizer->author_patch( $data->{author}->{ text },
-                                   $data->{author} );
+        $licensizer->load_file( $relpath );
+
+        my %options = ();
+        $options{ clear } = 1 if $cmd_opts{ c };
+        $options{ dryrun } = 1 if $cmd_opts{ n };
         $licensizer->license_patch( $data->{license}->{ text },
-                                    $data->{license} );
+                                   { %{ $data->{license} }, %options } );
+        $licensizer->author_patch( $data->{author}->{ text },
+                                   { %{ $data->{author} }, %options } );
         if( $licensizer->modified() ) {
             INFO "Updated $relpath";
             $licensizer->write_file();

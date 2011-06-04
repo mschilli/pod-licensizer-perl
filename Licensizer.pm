@@ -6,7 +6,7 @@ use warnings;
 use Pod::Abstract;
 use Log::Log4perl qw(:easy);
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 ###########################################
 sub new {
@@ -116,6 +116,9 @@ sub section_patch {
 ###########################################
     my( $self, $heading, $regex, $text, $opts ) = @_;
 
+    my $info_prefix = "";
+    $info_prefix = "(dryrun) " if $opts->{ dryrun };
+
     while( $text !~ /\n\n$/ ) {
         $text = "$text\n";
     }
@@ -124,6 +127,16 @@ sub section_patch {
         $opts->{mode} eq "verbatim";
 
     my($section_head) = $self->{pa}->select("/head1[\@heading =~ {$regex}]");
+
+    if( $opts->{ clear } ) {
+        if( defined $section_head ) {
+            INFO "${info_prefix}deleting section $heading from $self->{ file }";
+            if( ! $opts->{ dryrun } ) {
+                $section_head->detach();
+            }
+        }
+        return 1;
+    }
 
     my $section_new = Pod::Abstract->load_string( $text );
 
@@ -136,11 +149,15 @@ sub section_patch {
           # find the last =head1
         my( $last_head1 ) = reverse $self->{pa}->select("/head1");
         $last_head1 = $self->{pa} unless defined $last_head1;
-        $section_head->insert_after( $last_head1 );
+
+            $section_head->insert_after( $last_head1 );
     }
 
-    $section_head->clear();
-    $section_head->push( $section_new );
+    INFO "${info_prefix}adding section $heading to $self->{ file }";
+    if( ! $opts->{ dryrun } ) {
+        $section_head->clear();
+        $section_head->push( $section_new );
+    }
 }
 
 1;
