@@ -33,6 +33,7 @@ main();
 sub main {
 ###########################################
     my $yaml_path;
+    
       # search upwards for a .licensizer.yml file
     my $dir = realpath( cwd() );
     my $start_dir = $dir;
@@ -58,8 +59,8 @@ sub main {
 
     for my $field ( qw(author license) ) {
         if( ! defined $data->{ $field } ) {
-            FATAL "$yaml_path has no '$field' field";
-            return;
+            INFO "$yaml_path has no '$field' field";
+            next;
         }
 
           # deal with simple/advanced format
@@ -91,10 +92,14 @@ sub main {
         my %options = ();
         $options{ clear } = 1 if $cmd_opts{ c };
         $options{ dryrun } = 1 if $cmd_opts{ n };
-        $licensizer->license_patch( $data->{license}->{ text },
-                                   { %{ $data->{license} }, %options } );
-        $licensizer->author_patch( $data->{author}->{ text },
-                                   { %{ $data->{author} }, %options } );
+        if( defined $data->{ license } ) {
+            $licensizer->license_patch( $data->{license}->{ text },
+                                       { %{ $data->{license} }, %options } );
+        }
+        if( defined $data->{ author } ) {
+            $licensizer->author_patch( $data->{author}->{ text },
+                                       { %{ $data->{author} }, %options } );
+        }
         if( $licensizer->modified() ) {
             INFO "Updated $relpath";
             $licensizer->write_file();
