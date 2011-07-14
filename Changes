@@ -1,6 +1,11 @@
 ######################################################################
 Revision history for Pod::Licensizer
 
+0.03  2011/07/13
+  (ms) Fixed simple/advance style parsing
+  (ms) Fixed eg/licensizer.yml example
+  (ms) Added test for eg/licensizer
+
 0.02  2011/06/04
   (ms) Clear option (-c switch) removes sections for later re-application in
        defined order.

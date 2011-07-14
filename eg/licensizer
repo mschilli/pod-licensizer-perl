@@ -65,7 +65,9 @@ sub main {
 
           # deal with simple/advanced format
         if( ref( $data->{ $field } ) ne "HASH" ) {
-            $data->{ $field }->{ text } =  $data->{ $field };
+            my $text = $data->{ $field };
+            $data->{ $field } = {};
+            $data->{ $field }->{ text } = $text;
         }
     }
 

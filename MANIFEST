@@ -8,6 +8,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 README
 t/001Basic.t
+t/002CmdLine.t
 t/eg/no-authors.pod
 t/eg/no-license.pod
 t/eg/no-nothing.pod
